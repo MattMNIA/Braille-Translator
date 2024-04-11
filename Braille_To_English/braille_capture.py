@@ -1,9 +1,9 @@
 import cv2
 import numpy as np
 
-path = ''
+path = "C:/Users/mattc/Documents/GitHub/Braille-Translator/Grade-2-Braille-Example.jpg"
 
-image = cv2.imread(path)
+image = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
 
 
 params = cv2.SimpleBlobDetector_Params()
