@@ -9,7 +9,9 @@ detector = bc.create_detector()
 
 
 # Step 1. Identify dots
+
 dots = bc.get_dots(img, detector)
+
 # draws detected dots
 img_with_keypoints = cv2.drawKeypoints(img, dots, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 

@@ -1,9 +1,28 @@
 import cv2
 import numpy as np
 
+
+"""
+Braille Measurements provided by up.codes/s/braille
+
+Dot diameter: 0.059-0.063 inches
+Distance between dots in the same cell: 0.090-0.100 inches
+Distance corresponding dots in adjacent cells: 0.241-0.300 inches
+Distance between corresponding dots from one cell directly below: 0.395-0.400 inches
+"""
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 def create_detector():
     """
-
     Returns:
         blob detector object
     """
@@ -58,3 +77,14 @@ def show_image(img, image_name):
     cv2.imshow(image_name, img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+def find_corners(dots):
+    """ given array of dots, find x, y, width, and height of the bounding
+    rectangle of the braille characters
+    Args:
+        dots (array of KeyPoints): Array containing information about all braill dots
+        
+    Returns:
+        x, y, w, h: coordinate of top left corner, width, height
+    """
+    
