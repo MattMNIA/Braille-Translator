@@ -1,3 +1,4 @@
+from queue import Full
 import cv2
 import numpy as np
 
@@ -11,12 +12,32 @@ Distance corresponding dots in adjacent cells: 0.241-0.300 inches
 Distance between corresponding dots from one cell directly below: 0.395-0.400 inches
 """
     
+def find_bounds(dots):
+    """Finds the bounding rectangle for the braille characters
+
+    Args:
+        dots (arr[]): list of all detected dots
+
+    Returns:
+        ints: x, y, w, h: x and y coordinate of top left corner, width, and height
+    """
     
     
+    min_x, min_y = dots[0].pt[0], dots[0].pt[1]
+    max_y = max_x = 0
+    for dot in dots:
+        #uses radius to adjust rectangle to surround edges
+        r = dot.size/2
+        min_x = min(dot.pt[0]-r, min_x)
+        min_y = min(dot.pt[1]-r, min_y)
+        max_x = max(dot.pt[0]+r, max_x)
+        max_y = max(dot.pt[1]+r, max_y)
+    return int(min_x), int(min_y), int(max_x-min_x), int(max_y-min_y)
+
+        
+
     
-    
-    
-    
+
     
     
     
@@ -56,16 +77,6 @@ def create_detector():
     detector = cv2.SimpleBlobDetector.create(params)
     return detector
 
-def get_dots(self, img, detector):
-    """
-    Args:
-        img (image): image of braille
-        detector (SimpleBlobDetector): Detects blobs of certain size and roundness
-
-    Returns:
-        arr[] of KeyPoints: returns keypoints of dots in image
-    """
-    return detector.detect(img)
 
 def show_image(img, image_name):
     """shows image in window

@@ -10,7 +10,7 @@ detector = bc.create_detector()
 
 # Step 1. Identify dots
 
-dots = bc.get_dots(img, detector)
+dots = detector.detect(img)
 
 # draws detected dots
 img_with_keypoints = cv2.drawKeypoints(img, dots, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
@@ -32,7 +32,11 @@ cv2.destroyAllWindows()
 
 dot_size = dots[0].size
 
-x,y,w,h = cv2.boundingRect(dots)
+x,y,w,h = bc.find_bounds(dots)
+print(x)
+print(y)
+print(x+w)
+print(y+h)
 cv2.rectangle(img, (x,y), (x+w, y+h), (0,255,0),2)
 
 cv2.imshow('Blob Detection', img)
