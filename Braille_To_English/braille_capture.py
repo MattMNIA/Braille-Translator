@@ -5,11 +5,11 @@ from pathlib import Path
 
 path = "C:/Users/mattc/Documents/GitHub/Braille-Translator/Grade-2-Braille-Example.jpg"
 
-path = r"C:\Users\mattc\Documents\GitHub\Braille-Translator\Dorm_Braille.JPG"
+# path = r"C:\Users\mattc\Documents\GitHub\Braille-Translator\Dorm_Braille.JPG"
 
-path = r"C:\Users\mattc\Documents\GitHub\Braille-Translator\Hello_World_Braille.png"
+# path = r"C:\Users\mattc\Documents\GitHub\Braille-Translator\Hello_World_Braille.png"
 # dot color = 0 if black, 1 if white
-dot_color = 1
+dot_color = 0
 
 
 
@@ -58,13 +58,15 @@ dots_confidence = dots + ()
 dots_x = dots + ()
 dots_y = dots + ()
 # sorts dots based on confidence
-sorted(dots_confidence, key=lambda KeyPoint: KeyPoint.response, reverse=True)
+dots_confidence = sorted(dots_confidence, key=lambda KeyPoint: KeyPoint.response, reverse=True)
 # sorts dots based on x value
-sorted(dots_x, key=lambda KeyPoint: KeyPoint.pt[0])
+dots_x = sorted(dots_x, key=lambda KeyPoint: KeyPoint.pt[0])
 # sorts dots based on y value
-sorted(dots_y, key=lambda KeyPoint: KeyPoint.pt[1])
-
-
+dots_y = sorted(dots_y, key=lambda KeyPoint: KeyPoint.pt[1])
+grouped_dots = bc.group_dots(dots_x, dot_size)
+for dots in grouped_dots:
+    img_with_keypoints = cv2.drawKeypoints(img, dots, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+    bc.show_image(img_with_keypoints, "group")
 
 # Step 3. Split rectangle into 6ths
 

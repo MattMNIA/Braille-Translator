@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 
 
+
 """
 Braille Measurements provided by up.codes/s/braille
 
@@ -214,10 +215,34 @@ def generate_response(dots, img):
         # cv2.resizeWindow("Thresh", 500, 500)
         x, y = dot.pt
         r = dot.size//2
-        area = 3.14*r**2
+        area = 3.14*(r)**2
         thresh_copy = thresh[int(y-r):int(y+r+1), int(x-r):int(x+r+1)]
         black_pix = (r*2)**2 - cv2.countNonZero(thresh_copy)
         confidence = black_pix/area
         dot.response = confidence
         # print(confidence)
         # show_image(thresh_copy, "Thresh")
+        
+def group_dots(dots, dot_size):
+    """find and groups dots that coorespond to the same letter
+
+    Args:
+        dots (arr[]): array of dots sorted by x coordinates
+        dot_size (int): diamerter of first dot
+        
+    Return:
+        grouped_dots (List(List())): a list filled with lists of dots grouped by x coordinate
+    """
+    # gap of 1.5 between horizontally
+    grouped_dots = []
+    grouped_dots.append([dots[0]])
+    idx = 0
+    for i in range(1, len(dots)):
+        if abs(dots[i].pt[0] - dots[i-1].pt[0])<(2*dot_size):
+            grouped_dots[idx].append(dots[i])
+        else:
+            idx += 1
+            grouped_dots.append([dots[i]])
+    return grouped_dots
+    
+    
