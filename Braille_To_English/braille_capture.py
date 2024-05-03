@@ -1,27 +1,39 @@
 import cv2
 import numpy as np
 import braille_capture_methods as bc
+from pathlib import Path
 
 path = "C:/Users/mattc/Documents/GitHub/Braille-Translator/Grade-2-Braille-Example.jpg"
 
-img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-detector = bc.create_detector()
+path = r"C:\Users\mattc\Documents\GitHub\Braille-Translator\Dorm_Braille.JPG"
 
+path = r"C:\Users\mattc\Documents\GitHub\Braille-Translator\Hello_World_Braille.png"
+# dot color = 0 if black, 1 if white
+dot_color = 1
+
+
+
+img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+blur = cv2.GaussianBlur(img, (5,5), 1)
+# Create Binary image
+ret, thresh = cv2.threshold(blur, 200,255, cv2.THRESH_BINARY)
+if dot_color == 1:
+    thresh = cv2.bitwise_not(thresh)
+bc.show_image(thresh, "img")
+
+detector = bc.create_detector(thresh)
 
 # Step 1. Identify dots
 
-dots = bc.get_dots(img, detector)
+dots = detector.detect(img)
 
 # draws detected dots
+
+
 img_with_keypoints = cv2.drawKeypoints(img, dots, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-
-
-
-cv2.imshow('Blob Detection', img_with_keypoints)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
-
+x,y,w,h = bc.find_bounds(dots)
+cropped = bc.crop_to_braille(img_with_keypoints, (x, y, w, h))
+bc.show_image(cropped, "fo show")
 
 
 
@@ -29,17 +41,34 @@ cv2.destroyAllWindows()
 
 
 # Identify size of circles.
-
-dot_size = dots[0].size
-
-x,y,w,h = cv2.boundingRect(dots)
-cv2.rectangle(img, (x,y), (x+w, y+h), (0,255,0),2)
-
-cv2.imshow('Blob Detection', img)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-# Step 3. Split rectangle into 6ths
+try:
+    dot_size = dots[0].size
+except:
+    raise Exception("No dots found...")
     
+x,y,w,h = bc.find_bounds(dots)
+# cv2.rectangle(img, (x,y), (x+w, y+h), (0,255,0),2)
+
+
+cropped = bc.crop_to_braille(img, (x, y, w, h))
+
+# sort dots by confidence
+bc.generate_response(dots, img)
+dots_confidence = dots + ()
+dots_x = dots + ()
+dots_y = dots + ()
+# sorts dots based on confidence
+sorted(dots_confidence, key=lambda KeyPoint: KeyPoint.response, reverse=True)
+# sorts dots based on x value
+sorted(dots_x, key=lambda KeyPoint: KeyPoint.pt[0])
+# sorts dots based on y value
+sorted(dots_y, key=lambda KeyPoint: KeyPoint.pt[1])
+
+
+
+# Step 3. Split rectangle into 6ths
+
+
     
 # Step 4. Identify which of the six sections are "filled"
 
