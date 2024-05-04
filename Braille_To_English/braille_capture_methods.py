@@ -2,7 +2,50 @@ from queue import Full
 import cv2
 import numpy as np
 
+Braille_to_Letters = {
+    "100000":"a",
+    "110000":"b",
+    "100100":"c",
+    "100110":"d",
+    "100100":"e",
+    "110100":"f",
+    "110110":"g",
+    "110010":"h",
+    "010100":"i",
+    "010110":"j",
+    "101000":"k",
+    "111000":"l",
+    "101100":"m",
+    "101110":"n",
+    "101010":"o",
+    "111100":"p",
+    "111110":"q",
+    "111010":"r",
+    "011100":"s",
+    "011110":"t",
+    "101001":"u",
+    "111001":"v",
+    "010111":"w",
+    "101101":"x",
+    "101111":"y",
+    "101011":"z",
+}
 
+Braille_to_Numbers = {
+    "100000":"1",
+    "110000":"2",
+    "100100":"3",
+    "100110":"4",
+    "100100":"5",
+    "110100":"6",
+    "110110":"7",
+    "110010":"8",
+    "010100":"9",
+    "010110":"0",
+}
+
+number_sign = "001111"
+letter_sign = "000011"
 
 """
 Braille Measurements provided by up.codes/s/braille
@@ -246,3 +289,112 @@ def group_dots(dots, dot_size):
     return grouped_dots
     
     
+def find_row(dot, x, y, w, h):
+    """_summary_
+
+    Args:
+        dot (keypoint): Keypoint of braille character
+        x (int): left bound for braille characters
+        y (int): top bound for braille characters
+        w (int): width of braille section
+        h (int): height of braille section
+        
+    Return:
+        1 if in top row
+        2 if in middle row
+        3 if in bottom row
+    """
+    # dots 1 and 4 will be at any height < y+(1.5*dot_size)
+    # dots 2 and 5 will be at any height y+(1.5*dot_size) <= and < y+(3.0*dotsize)
+    # dots 3 and 6 will be at any height <= y+(3.0*dot_size)
+    
+    if dot.pt[1] < y+(1.5*dot.size):
+        return 1
+    elif dot.pt[1] < y+(3.0*dot.size):
+        return 2
+    else:
+        return 3
+    
+    
+def organize_cell(grouped_dots):
+    """Organizes every array of dots in grouped dots, into a 
+    6 index long array in which each index cooresponds to a braille
+    cells dot positions
+    
+    eg...
+    
+    1  4
+    2  5
+    3  6
+    
+    Args:
+        grouped_dots (List(List())): List of groups of dots that belong to a letter
+        
+    """
+    # split 1, 2, and 3 from 4, 5, and 6
+    cell_positions = np.zeros((6,len(grouped_dots)), dtype=int)
+    idx = 0
+    for dots in grouped_dots:
+        base = dots[0]
+        left = []
+        right = []
+        for dot in dots:
+            # if in the same column as the leftmost dot
+            if dot.pt[0] - base.pt[0] < 0.5 * base.size:
+                left.append(dot)
+            else:
+                right.append(dot)
+        
+        for dot in left:
+            cell_positions[idx][find_row(dot)] = 1
+        
+        for dot in right:
+            cell_positions[idx+3][find_row(dot)] = 1
+        idx += 1
+    
+
+def get_cell_coords(organized_cell):
+    """Converts the 6 index array into a 6 character long string
+
+    Args:
+        organized_cell (List(List())): 6xN list of 1s and 0s
+        
+    Return:
+        cell_coords (List(List())): the same list as organized cell but as strings
+    """    
+    
+    cell_coords = []
+    for dots in organized_cell:
+        str1 = ""
+        for b in dots:
+            str1 += b
+        cell_coords.append(str1)
+    return cell_coords
+
+def cell_to_English(organized_cell):
+    """Converts 6 index array of 1s and 0s to the alphabet representation
+
+    Args:
+        organized_cell (List(List())): 6xN list of 1s and 0s
+        
+    Return:
+        letters (List): List of characters
+    """
+    letters = []
+    isNumber = False
+    cell_coords = get_cell_coords(organized_cell)
+    for i in range(len(cell_coords)):
+        if cell_coords is number_sign:
+            isNumber = True
+            letters.append(" ")
+        elif cell_coords is letter_sign:
+            isNumber = False
+            letters.append(" ")
+        else:
+            if isNumber:
+                letters.append(Braille_to_Numbers[cell_coords[i]])
+            else:
+                letters.append(Braille_to_Letters[cell_coords[i]])
+    return letters
+            
+                

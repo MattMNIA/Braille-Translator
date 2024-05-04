@@ -64,13 +64,10 @@ dots_x = sorted(dots_x, key=lambda KeyPoint: KeyPoint.pt[0])
 # sorts dots based on y value
 dots_y = sorted(dots_y, key=lambda KeyPoint: KeyPoint.pt[1])
 grouped_dots = bc.group_dots(dots_x, dot_size)
-for dots in grouped_dots:
-    img_with_keypoints = cv2.drawKeypoints(img, dots, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-    bc.show_image(img_with_keypoints, "group")
+# put into 2x3 matrix
+bc.organize_cell(grouped_dots)
 
-# Step 3. Split rectangle into 6ths
+letters = bc.cell_to_English(grouped_dots)
 
-
-    
-# Step 4. Identify which of the six sections are "filled"
+print(letters)
 
