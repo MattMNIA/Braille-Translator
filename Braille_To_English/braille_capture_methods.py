@@ -7,7 +7,7 @@ Braille_to_Letters = {
     "110000":"b",
     "100100":"c",
     "100110":"d",
-    "100100":"e",
+    "100010":"e",
     "110100":"f",
     "110110":"g",
     "110010":"h",
@@ -36,7 +36,7 @@ Braille_to_Numbers = {
     "110000":"2",
     "100100":"3",
     "100110":"4",
-    "100100":"5",
+    "100010":"5",
     "110100":"6",
     "110110":"7",
     "110010":"8",
@@ -44,6 +44,7 @@ Braille_to_Numbers = {
     "010110":"0",
 }
 
+upper_case_sign = "001000"
 number_sign = "001111"
 letter_sign = "000011"
 
@@ -250,8 +251,8 @@ def generate_response(dots, img):
         dots (arr[]): array of dots
         img (image): images that dots were gathered from
     """
-    cv2.namedWindow("Thresh", cv2.WINDOW_NORMAL)
-    cv2.resizeWindow("Thresh", 500, 500)
+    # cv2.namedWindow("Thresh", cv2.WINDOW_NORMAL)
+    # cv2.resizeWindow("Thresh", 500, 500)
     ret, thresh = cv2.threshold(img, 100,255, cv2.THRESH_BINARY)
     for dot in dots:
         # cv2.namedWindow("Thresh", cv2.WINDOW_NORMAL)
@@ -300,23 +301,23 @@ def find_row(dot, x, y, w, h):
         h (int): height of braille section
         
     Return:
-        1 if in top row
-        2 if in middle row
-        3 if in bottom row
+        0 if in top row
+        1 if in middle row
+        2 if in bottom row
     """
     # dots 1 and 4 will be at any height < y+(1.5*dot_size)
     # dots 2 and 5 will be at any height y+(1.5*dot_size) <= and < y+(3.0*dotsize)
     # dots 3 and 6 will be at any height <= y+(3.0*dot_size)
     
     if dot.pt[1] < y+(1.5*dot.size):
-        return 1
+        return 0
     elif dot.pt[1] < y+(3.0*dot.size):
-        return 2
+        return 1
     else:
-        return 3
+        return 2
     
     
-def organize_cell(grouped_dots):
+def organize_cell(grouped_dots, x, y, w, h):
     """Organizes every array of dots in grouped dots, into a 
     6 index long array in which each index cooresponds to a braille
     cells dot positions
@@ -329,10 +330,16 @@ def organize_cell(grouped_dots):
     
     Args:
         grouped_dots (List(List())): List of groups of dots that belong to a letter
+        x (int): left bound for braille characters
+        y (int): top bound for braille characters
+        w (int): width of braille section
+        h (int): height of braille section
         
+    Return:
+        organized_cell (List(List())): 6xN list of 1s and 0s
     """
     # split 1, 2, and 3 from 4, 5, and 6
-    cell_positions = np.zeros((6,len(grouped_dots)), dtype=int)
+    cell_positions = np.zeros((len(grouped_dots), 6), dtype=int)
     idx = 0
     for dots in grouped_dots:
         base = dots[0]
@@ -346,11 +353,12 @@ def organize_cell(grouped_dots):
                 right.append(dot)
         
         for dot in left:
-            cell_positions[idx][find_row(dot)] = 1
+            cell_positions[idx][find_row(dot, x, y, w, h)] = 1
         
         for dot in right:
-            cell_positions[idx+3][find_row(dot)] = 1
+            cell_positions[idx][3+find_row(dot, x, y, w, h)] = 1
         idx += 1
+    return cell_positions
     
 
 def get_cell_coords(organized_cell):
@@ -362,12 +370,11 @@ def get_cell_coords(organized_cell):
     Return:
         cell_coords (List(List())): the same list as organized cell but as strings
     """    
-    
     cell_coords = []
     for dots in organized_cell:
         str1 = ""
         for b in dots:
-            str1 += b
+            str1 += str(b)
         cell_coords.append(str1)
     return cell_coords
 
@@ -380,21 +387,27 @@ def cell_to_English(organized_cell):
     Return:
         letters (List): List of characters
     """
-    letters = []
+    letters = list()
     isNumber = False
     cell_coords = get_cell_coords(organized_cell)
-    for i in range(len(cell_coords)):
-        if cell_coords is number_sign:
+    for cell in cell_coords:
+        if cell == number_sign:
             isNumber = True
             letters.append(" ")
-        elif cell_coords is letter_sign:
+        elif cell == letter_sign:
             isNumber = False
             letters.append(" ")
         else:
             if isNumber:
-                letters.append(Braille_to_Numbers[cell_coords[i]])
+                if cell in Braille_to_Numbers.keys():
+                    letters.append(Braille_to_Numbers[cell])
+                else: 
+                    letters.append(" ")
             else:
-                letters.append(Braille_to_Letters[cell_coords[i]])
+                if cell in Braille_to_Letters.keys():
+                    letters.append(Braille_to_Letters[cell])
+                else: 
+                    letters.append(" ")
     return letters
             
                 

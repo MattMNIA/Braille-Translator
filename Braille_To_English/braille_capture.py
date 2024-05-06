@@ -5,11 +5,13 @@ from pathlib import Path
 
 path = "C:/Users/mattc/Documents/GitHub/Braille-Translator/Grade-2-Braille-Example.jpg"
 
-# path = r"C:\Users\mattc\Documents\GitHub\Braille-Translator\Dorm_Braille.JPG"
+path = r"C:\Users\mattc\Documents\GitHub\Braille-Translator\Dorm_Braille.JPG"
 
 # path = r"C:\Users\mattc\Documents\GitHub\Braille-Translator\Hello_World_Braille.png"
+
+path = r"C:\Python Projects\Braille Translator\Braille-Translator-1\Dorm_Braille_noLetters.JPG"
 # dot color = 0 if black, 1 if white
-dot_color = 0
+dot_color = 1
 
 
 
@@ -65,9 +67,9 @@ dots_x = sorted(dots_x, key=lambda KeyPoint: KeyPoint.pt[0])
 dots_y = sorted(dots_y, key=lambda KeyPoint: KeyPoint.pt[1])
 grouped_dots = bc.group_dots(dots_x, dot_size)
 # put into 2x3 matrix
-bc.organize_cell(grouped_dots)
+cell_coords = bc.organize_cell(grouped_dots, x, y, w, h)
 
-letters = bc.cell_to_English(grouped_dots)
+letters = bc.cell_to_English(cell_coords)
 
 print(letters)
 
