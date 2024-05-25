@@ -4,6 +4,7 @@ import math
 import numpy as np
 
 Braille_to_Letters = {
+    "000000":" ",
     "100000":"a",
     "110000":"b",
     "100100":"c",
@@ -104,7 +105,7 @@ def create_generic_detector():
     """
     params = cv2.SimpleBlobDetector_Params()
 
-    params.filterByColor = 1
+    params.filterByColor = 0
     # detect darker blobs : 0, detect lighter blobs : 256
     params.blobColor = 0
 
@@ -152,8 +153,8 @@ def create_detector(img, thresh):
     params.blobColor = 0
 
     # Change thresholds
-    params.minThreshold = 10
-    params.maxThreshold = 300
+    params.minThreshold = 50
+    params.maxThreshold = 200
     
     # Filter by Area.
     params.filterByArea = True
@@ -196,7 +197,7 @@ def find_blob_size(img, thresh):
     params.filterByArea = True
     params.minArea = area
     params.maxArea = area
-
+    circle_image = img.copy()
     detector = cv2.SimpleBlobDetector.create(params)
     dots = detector.detect(thresh)
     while len(dots)<2 and area>2:
@@ -204,6 +205,8 @@ def find_blob_size(img, thresh):
         params.minArea = int(area)
         detector = cv2.SimpleBlobDetector.create(params)
         dots = detector.detect(thresh)
+        # circle_image = cv2.circle(circle_image, (circle_image.shape[1]//2, circle_image.shape[0]//2), int(math.sqrt(area/3.14)), (255,255,0), 1, cv2.FONT_HERSHEY_COMPLEX)
+        # show_image(circle_image, "circle")
     area =int(area*0.75)
     return area
 
@@ -216,7 +219,10 @@ def show_image(img, image_name):
         img (image): image to be shown
         image_name (String): name of window
     """
-    h, w, c = img.shape
+    try:
+        h, w, c = img.shape
+    except:
+        h, w = img.shape
     if w>h:
         factor = 1000/(w*1.0)
     else:
@@ -305,14 +311,52 @@ def find_row(dot, x, y, w, h):
     # dots 2 and 5 will be at any height y+(1.5*dot_size) <= and < y+(3.0*dotsize)
     # dots 3 and 6 will be at any height <= y+(3.0*dot_size)
     
-    if dot.pt[1] < y+(1.5*dot.size):
+    if dot.pt[1] < y+(h//3):
         return 0
-    elif dot.pt[1] < y+(3.0*dot.size):
+    elif dot.pt[1] < y+(h//3*2):
         return 1
     else:
         return 2
+def add_spaces(grouped_dots):
+    """uses avg_x_dist method to find average distance between letters
+    if the distance between two letters is greater than the average,
+    we know that that must indicate a new word
+
+    Args:
+        grouped_dots (List(List())): List of groups of dots that belong to a letter
+
+    """
     
+    avg_dist = avg_x_dist(grouped_dots)
+    i = 1
+    num_spaces = 0
+    while i < len(grouped_dots)-1:
+        # first dot in group will always be in the left column
+        dist = abs(grouped_dots[i][0].pt[0]-grouped_dots[i+1][0].pt[0])
+        i+=1
+        if dist>avg_dist:
+            grouped_dots.insert(i, None)
+            i+=1
+            num_spaces+=1
     
+def avg_x_dist(grouped_dots):
+    """finds average distance between left row of each neigboring dots
+    this will be used to determine if there is enough space between dots
+    to indicate a new word
+    Args:
+        grouped_dots (List(List())): List of groups of dots that belong to a letter
+
+        
+    Return:
+        avg_dist (int): the average distance between the first column of neighboring cells
+    """
+    sum_dist = 0
+    for i in range(0, len(grouped_dots)-1):
+        # first dot in group will always be in the left column
+        dist = abs(grouped_dots[i][0].pt[0]-grouped_dots[i+1][0].pt[0])
+        sum_dist += dist
+    return int(sum_dist/(len(grouped_dots)-1.0)+0.5)
+        
 def organize_cell(grouped_dots, x, y, w, h):
     """Organizes every array of dots in grouped dots, into a 
     6 index long array in which each index cooresponds to a braille
@@ -338,21 +382,20 @@ def organize_cell(grouped_dots, x, y, w, h):
     cell_positions = np.zeros((len(grouped_dots), 6), dtype=int)
     idx = 0
     for dots in grouped_dots:
-        base = dots[0]
-        left = []
-        right = []
-        for dot in dots:
-            # if in the same column as the leftmost dot
-            if dot.pt[0] - base.pt[0] < 0.5 * base.size:
-                left.append(dot)
-            else:
-                right.append(dot)
-        
-        for dot in left:
-            cell_positions[idx][find_row(dot, x, y, w, h)] = 1
-        
-        for dot in right:
-            cell_positions[idx][3+find_row(dot, x, y, w, h)] = 1
+        if dots is not None:
+            base = dots[0]
+            left = []
+            right = []
+            for dot in dots:
+                # if in the same column as the leftmost dot
+                if dot.pt[0] - base.pt[0] < 0.5 * base.size:
+                    left.append(dot)
+                else:
+                    right.append(dot)
+            for dot in left:
+                cell_positions[idx][find_row(dot, x, y, w, h)] = 1
+            for dot in right:
+                cell_positions[idx][3+find_row(dot, x, y, w, h)] = 1
         idx += 1
     return cell_positions
     
@@ -391,13 +434,10 @@ def cell_to_English(organized_cell):
     for cell in cell_coords:
         if cell == number_sign:
             isNumber = True
-            c = " "
         elif cell == letter_sign:
             isNumber = False
-            c = " "
         elif cell == upper_case_sign:
             capitalize = True
-            c = " "
         else:
             if isNumber:
                 if cell in Braille_to_Numbers.keys():
@@ -412,7 +452,7 @@ def cell_to_English(organized_cell):
                     capitalize = False
                 else: 
                     c = " "
-        letters.append(c)
+            letters.append(c)
     return letters
             
                 

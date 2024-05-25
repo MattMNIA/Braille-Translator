@@ -13,6 +13,8 @@ path = r"C:\Users\mattc\Documents\GitHub\Braille-Translator\Hello_World_Braille.
 path = r"C:\Python Projects\Braille Translator\Braille-Translator-2\testcase1.png"
 
 #path = r"C:\Python Projects\Braille Translator\Braille-Translator-1\Dorm_Braille_noLetters.JPG"
+
+path = r"C:\Python Projects\Braille Translator\Braille-Translator-2\image.png"
 # dot color = 0 if black, 1 if white
 dot_color = 0
 
@@ -24,6 +26,7 @@ img = cv2.imread(path)
 area = img.shape[0]*img.shape[1]
 area_factor = 500000.0/area
 if(area_factor>1):
+    print("resize")
     img = cv2.resize(img, (int(img.shape[1]*math.sqrt(area_factor)), int(img.shape[0]*math.sqrt(area_factor))), interpolation= cv2.INTER_LINEAR)
     
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -36,9 +39,7 @@ ret1, thresh = cv2.threshold(blur, 200,255, cv2.THRESH_BINARY)
 if dot_color == 1:
     thresh = cv2.bitwise_not(thresh)
 
-
-
-detector = bc.create_detector(img, thresh)
+detector = bc.create_detector(gray, thresh)
 
 # Step 1. Identify dots
 
@@ -50,6 +51,7 @@ dots = detector.detect(thresh)
 img_with_keypoints = cv2.drawKeypoints(img, dots, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 x,y,w,h = bc.find_bounds(dots)
 cropped = bc.crop_to_braille(img_with_keypoints, (x, y, w, h))
+
 bc.show_image(cropped, "fo show")
 
 
@@ -80,7 +82,9 @@ dots_confidence = sorted(dots_confidence, key=lambda KeyPoint: KeyPoint.response
 dots_x = sorted(dots_x, key=lambda KeyPoint: KeyPoint.pt[0])
 # sorts dots based on y value
 dots_y = sorted(dots_y, key=lambda KeyPoint: KeyPoint.pt[1])
+# group dots from the same cell
 grouped_dots = bc.group_dots(dots_x, dot_size)
+bc.add_spaces(grouped_dots)
 # put into 2x3 matrix
 cell_coords = bc.organize_cell(grouped_dots, x, y, w, h)
 
