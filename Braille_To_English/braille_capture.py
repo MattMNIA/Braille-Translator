@@ -5,29 +5,43 @@ from pathlib import Path
 
 path = "C:/Users/mattc/Documents/GitHub/Braille-Translator/Grade-2-Braille-Example.jpg"
 
-path = r"C:\Users\mattc\Documents\GitHub\Braille-Translator\Dorm_Braille.JPG"
+#path = r"C:\Users\mattc\Documents\GitHub\Braille-Translator\Dorm_Braille.JPG"
 
-# path = r"C:\Users\mattc\Documents\GitHub\Braille-Translator\Hello_World_Braille.png"
+#path = r"C:\Users\mattc\Documents\GitHub\Braille-Translator\Hello_World_Braille.png"
 
-path = r"C:\Python Projects\Braille Translator\Braille-Translator-1\Dorm_Braille_noLetters.JPG"
+#path = r"C:\Python Projects\Braille Translator\Braille-Translator-1\Dorm_Braille_noLetters.JPG"
 # dot color = 0 if black, 1 if white
-dot_color = 1
+dot_color = 0
 
 
 
-img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-blur = cv2.GaussianBlur(img, (5,5), 1)
+img = cv2.imread(path)
+print(img.shape)
+# adjust size to increase resolution of bad photos
+# 200,000 pixels is the ideal minium resolution
+area = img.shape[0]*img.shape[1]
+area_factor = 200000/area
+if(area_factor>1):
+    img = cv2.resize(img, (int(img.shape[1]*area_factor), int(img.shape[0]*area_factor)), interpolation= cv2.INTER_LINEAR)
+    
+bc.show_image(img, "resized?")
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+blur = cv2.GaussianBlur(gray, (5,5), 1)
 # Create Binary image
-ret, thresh = cv2.threshold(blur, 200,255, cv2.THRESH_BINARY)
+
+ret1, thresh = cv2.threshold(blur, 200,255, cv2.THRESH_BINARY)
+
 if dot_color == 1:
     thresh = cv2.bitwise_not(thresh)
-bc.show_image(thresh, "img")
 
-detector = bc.create_detector(thresh)
+
+
+detector = bc.create_detector(img, thresh)
 
 # Step 1. Identify dots
 
-dots = detector.detect(img)
+dots = detector.detect(thresh)
 
 # draws detected dots
 
@@ -55,7 +69,7 @@ x,y,w,h = bc.find_bounds(dots)
 cropped = bc.crop_to_braille(img, (x, y, w, h))
 
 # sort dots by confidence
-bc.generate_response(dots, img)
+bc.generate_response(dots, thresh)
 dots_confidence = dots + ()
 dots_x = dots + ()
 dots_y = dots + ()

@@ -1,5 +1,6 @@
 from queue import Full
 import cv2
+import math
 import numpy as np
 
 Braille_to_Letters = {
@@ -131,7 +132,7 @@ def create_generic_detector():
     detector = cv2.SimpleBlobDetector.create(params)
     return detector
 
-def create_detector(img):
+def create_detector(img, thresh):
     """summary: Uses the size of image to more reliably
     detect braille dots.
     
@@ -156,17 +157,15 @@ def create_detector(img):
     
     # Filter by Area.
     params.filterByArea = True
-    img_w, img_h = img.shape[::-1]
-    img_area = img_w*img_h
     # Use "find_blob_size" method to determine
     # appropriate minimum area for blobs
-    area = find_blob_size(img)
+    area = find_blob_size(img, thresh)
     params.minArea = area
     
     # Filter by Circularity
     # 1 = perfect circle, 0.785 is a square
     params.filterByCircularity = True
-    params.minCircularity = 0.5
+    params.minCircularity = 0.6
     
     # Filter by Convexity
     params.filterByConvexity = False
@@ -180,7 +179,7 @@ def create_detector(img):
     return detector
 
 
-def find_blob_size(img):
+def find_blob_size(img, thresh):
     """Fixes issue with detector detecting dots that are
     too small
 
@@ -192,20 +191,20 @@ def find_blob_size(img):
         that prevents small and insignificant blobs from 
         being picked up
     """
-    area = img.size//.2
+    area = img.size//10
     params = cv2.SimpleBlobDetector_Params()
     params.filterByArea = True
     params.minArea = area
     params.maxArea = area
 
     detector = cv2.SimpleBlobDetector.create(params)
-    dots = detector.detect(img)
+    dots = detector.detect(thresh)
     while len(dots)<2 and area>2:
         area =int(area*0.75)
         params.minArea = int(area)
         detector = cv2.SimpleBlobDetector.create(params)
-        dots = detector.detect(img)
-    area =int(area*0.85)
+        dots = detector.detect(thresh)
+    area =int(area*0.75)
     return area
 
 
@@ -243,7 +242,7 @@ def KeyPoint_clone(dots):
             response = k.response, octave = k.octave, 
             class_id = k.class_id) for k in dots]
     
-def generate_response(dots, img):
+def generate_response(dots, thresh):
     """Accounts for bugged "response" variable in OpenCV's Keypoint class
     Approximates confidence level for each keypoint
 
@@ -253,16 +252,22 @@ def generate_response(dots, img):
     """
     # cv2.namedWindow("Thresh", cv2.WINDOW_NORMAL)
     # cv2.resizeWindow("Thresh", 500, 500)
-    ret, thresh = cv2.threshold(img, 100,255, cv2.THRESH_BINARY)
     for dot in dots:
         # cv2.namedWindow("Thresh", cv2.WINDOW_NORMAL)
         # cv2.resizeWindow("Thresh", 500, 500)
         x, y = dot.pt
         r = dot.size//2
         area = 3.14*(r)**2
-        thresh_copy = thresh[int(y-r):int(y+r+1), int(x-r):int(x+r+1)]
-        black_pix = (r*2)**2 - cv2.countNonZero(thresh_copy)
+        thresh_cropped = thresh[int(y-r):int(y+r+1), int(x-r):int(x+r+1)]
+        black_pix = (r*2)**2 - cv2.countNonZero(thresh_cropped)
         confidence = black_pix/area
+        print("radius = " + str(r))
+        print("area = " + str(area))
+        print("black pixels = " + str(black_pix))
+        print("confidence = " + str(confidence))
+        print()
+        show_image(thresh_cropped, "gray_cropped")
+        
         dot.response = confidence
         # print(confidence)
         # show_image(thresh_copy, "Thresh")
