@@ -3,11 +3,11 @@ import numpy as np
 import braille_capture_methods as bc
 from pathlib import Path
 
-path = "C:/Users/mattc/Documents/GitHub/Braille-Translator/Grade-2-Braille-Example.jpg"
+#path = "C:/Users/mattc/Documents/GitHub/Braille-Translator/Grade-2-Braille-Example.jpg"
 
 #path = r"C:\Users\mattc\Documents\GitHub\Braille-Translator\Dorm_Braille.JPG"
 
-#path = r"C:\Users\mattc\Documents\GitHub\Braille-Translator\Hello_World_Braille.png"
+path = r"C:\Users\mattc\Documents\GitHub\Braille-Translator\Hello_World_Braille.png"
 
 #path = r"C:\Python Projects\Braille Translator\Braille-Translator-1\Dorm_Braille_noLetters.JPG"
 # dot color = 0 if black, 1 if white
@@ -16,8 +16,7 @@ dot_color = 0
 
 
 img = cv2.imread(path)
-print(img.shape)
-# adjust size to increase resolution of bad photos
+print(img.shape)# adjust size to increase resolution of bad photos
 # 200,000 pixels is the ideal minium resolution
 area = img.shape[0]*img.shape[1]
 area_factor = 200000/area

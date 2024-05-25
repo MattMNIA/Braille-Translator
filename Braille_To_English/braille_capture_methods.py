@@ -261,15 +261,8 @@ def generate_response(dots, thresh):
         thresh_cropped = thresh[int(y-r):int(y+r+1), int(x-r):int(x+r+1)]
         black_pix = (r*2)**2 - cv2.countNonZero(thresh_cropped)
         confidence = black_pix/area
-        print("radius = " + str(r))
-        print("area = " + str(area))
-        print("black pixels = " + str(black_pix))
-        print("confidence = " + str(confidence))
-        print()
         
         dot.response = confidence
-        # print(confidence)
-        # show_image(thresh_copy, "Thresh")
         
 def group_dots(dots, dot_size):
     """find and groups dots that coorespond to the same letter
