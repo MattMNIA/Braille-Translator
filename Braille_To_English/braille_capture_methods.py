@@ -216,12 +216,11 @@ def show_image(img, image_name):
         img (image): image to be shown
         image_name (String): name of window
     """
-    h, w = img.shape[0], img.shape[1]
-    factor = 0
+    h, w, c = img.shape
     if w>h:
-        factor = 500/w
+        factor = 1000/(w*1.0)
     else:
-        factor = 500/h
+        factor = 1000/(h*1.0)
     cv2.namedWindow(image_name, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(image_name, int(factor*w), int(factor*h))
     cv2.imshow(image_name, img)
@@ -385,26 +384,35 @@ def cell_to_English(organized_cell):
         letters (List): List of characters
     """
     letters = list()
+    capitalize = False
     isNumber = False
     cell_coords = get_cell_coords(organized_cell)
+    c = ''
     for cell in cell_coords:
         if cell == number_sign:
             isNumber = True
-            letters.append(" ")
+            c = " "
         elif cell == letter_sign:
             isNumber = False
-            letters.append(" ")
+            c = " "
+        elif cell == upper_case_sign:
+            capitalize = True
+            c = " "
         else:
             if isNumber:
                 if cell in Braille_to_Numbers.keys():
-                    letters.append(Braille_to_Numbers[cell])
+                    c = Braille_to_Numbers[cell]
                 else: 
-                    letters.append(" ")
+                    c = " "
             else:
                 if cell in Braille_to_Letters.keys():
-                    letters.append(Braille_to_Letters[cell])
+                    c = Braille_to_Letters[cell]
+                    if(capitalize):
+                        c = c.upper()
+                    capitalize = False
                 else: 
-                    letters.append(" ")
+                    c = " "
+        letters.append(c)
     return letters
             
                 
