@@ -12,11 +12,10 @@ path = r"C:\Users\mattc\Documents\GitHub\Braille-Translator\Hello_World_Braille.
 
 path = r"C:\Python Projects\Braille Translator\Braille-Translator-2\testcase1.png"
 
-#path = r"C:\Python Projects\Braille Translator\Braille-Translator-1\Dorm_Braille_noLetters.JPG"
+path = r"C:\Python Projects\Braille Translator\Braille-Translator-1\Dorm_Braille_noLetters.JPG"
 
-path = r"C:\Python Projects\Braille Translator\Braille-Translator-2\image.png"
 # dot color = 0 if black, 1 if white
-dot_color = 0
+dot_color = 1
 
 
 
@@ -26,7 +25,6 @@ img = cv2.imread(path)
 area = img.shape[0]*img.shape[1]
 area_factor = 500000.0/area
 if(area_factor>1):
-    print("resize")
     img = cv2.resize(img, (int(img.shape[1]*math.sqrt(area_factor)), int(img.shape[0]*math.sqrt(area_factor))), interpolation= cv2.INTER_LINEAR)
     
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -39,7 +37,7 @@ ret1, thresh = cv2.threshold(blur, 200,255, cv2.THRESH_BINARY)
 if dot_color == 1:
     thresh = cv2.bitwise_not(thresh)
 
-detector = bc.create_detector(gray, thresh)
+detector = bc.create_detector(thresh)
 
 # Step 1. Identify dots
 

@@ -133,7 +133,7 @@ def create_generic_detector():
     detector = cv2.SimpleBlobDetector.create(params)
     return detector
 
-def create_detector(img, thresh):
+def create_detector(img):
     """summary: Uses the size of image to more reliably
     detect braille dots.
     
@@ -148,7 +148,7 @@ def create_detector(img, thresh):
     # creates detector
     params = cv2.SimpleBlobDetector_Params()
 
-    params.filterByColor = 0
+    params.filterByColor = 1
     # detect darker blobs : 0, detect lighter blobs : 256
     params.blobColor = 0
 
@@ -160,7 +160,7 @@ def create_detector(img, thresh):
     params.filterByArea = True
     # Use "find_blob_size" method to determine
     # appropriate minimum area for blobs
-    area = find_blob_size(img, thresh)
+    area = find_blob_size(img)
     params.minArea = area
     
     # Filter by Circularity
@@ -180,7 +180,7 @@ def create_detector(img, thresh):
     return detector
 
 
-def find_blob_size(img, thresh):
+def find_blob_size(img):
     """Fixes issue with detector detecting dots that are
     too small
 
@@ -197,7 +197,7 @@ def find_blob_size(img, thresh):
     params.filterByArea = True
     params.minArea = area
     params.maxArea = area
-    circle_image = img.copy()
+    ret, thresh = cv2.threshold(img, 200,255, cv2.THRESH_BINARY)
     detector = cv2.SimpleBlobDetector.create(params)
     dots = detector.detect(thresh)
     while len(dots)<2 and area>2:
@@ -334,7 +334,7 @@ def add_spaces(grouped_dots):
         # first dot in group will always be in the left column
         dist = abs(grouped_dots[i][0].pt[0]-grouped_dots[i+1][0].pt[0])
         i+=1
-        if dist>avg_dist:
+        if dist>avg_dist*1.2:
             grouped_dots.insert(i, None)
             i+=1
             num_spaces+=1
