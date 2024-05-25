@@ -24,7 +24,6 @@ area_factor = 200000/area
 if(area_factor>1):
     img = cv2.resize(img, (int(img.shape[1]*area_factor), int(img.shape[0]*area_factor)), interpolation= cv2.INTER_LINEAR)
     
-bc.show_image(img, "resized?")
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 blur = cv2.GaussianBlur(gray, (5,5), 1)

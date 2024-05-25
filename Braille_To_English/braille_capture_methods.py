@@ -266,7 +266,6 @@ def generate_response(dots, thresh):
         print("black pixels = " + str(black_pix))
         print("confidence = " + str(confidence))
         print()
-        show_image(thresh_cropped, "gray_cropped")
         
         dot.response = confidence
         # print(confidence)
